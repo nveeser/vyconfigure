@@ -1,30 +1,54 @@
 package api
 
 import (
-	"crypto/tls"
-	"net/http"
-	"time"
-
-	"github.com/charlie-haley/vyconfigure/pkg/options"
+	"context"
+	"encoding/json"
+	"github.com/ganawaj/go-vyos/vyos"
+	"github.com/nveeser/vyconfigure/pkg/options"
 )
 
 type Client struct {
-	Options    *options.Options
-	httpClient *http.Client
+	*vyos.Client
 }
 
 func CreateClient(o *options.Options) (*Client, error) {
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	if o.Insecure {
-		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	client, err := vyos.NewClient(o.Host, vyos.Token(o.ApiKey), vyos.Insecure(), vyos.DebugLogging())
+	if err != nil {
+		return nil, err
 	}
-
-	httpClient := &http.Client{Transport: t, Timeout: time.Duration(10) * time.Second}
-
-	client := &Client{
-		Options:    o,
-		httpClient: httpClient,
+	c := &Client{
+		Client: client,
 	}
+	return c, nil
+}
 
-	return client, nil
+func (c *Client) RetrieveJson(ctx context.Context) ([]byte, error) {
+	data, err := c.Retrieve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	j, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return j, nil
+}
+
+func (c *Client) Retrieve(ctx context.Context) (map[string]any, error) {
+	data, err := c.ConfigMode().Show(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+	if data == nil {
+		return nil, nil
+	}
+	// delete login configuration under "system" due to complexities with encrypted passwords
+	for key := range data {
+		if key == "system" {
+			users := data[key]
+			u := users.(map[string]any)
+			delete(u, "login")
+		}
+	}
+	return data, nil
 }

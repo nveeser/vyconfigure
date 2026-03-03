@@ -1,9 +1,11 @@
-module github.com/charlie-haley/vyconfigure
+module github.com/nveeser/vyconfigure
 
-go 1.19
+go 1.23.3
 
 require (
 	github.com/fatih/color v1.13.0
+	github.com/ganawaj/go-vyos v0.1.0
+	github.com/nveeser/go-vyos v0.0.0-20260307222938-96ccf5e39850
 	github.com/r3labs/diff/v3 v3.0.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.5.1
@@ -25,3 +27,5 @@ require (
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+replace github.com/ganawaj/go-vyos => ../go-vyos
