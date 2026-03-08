@@ -3,7 +3,7 @@ package convert
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ganawaj/go-vyos/vyos"
+	"github.com/nveeser/go-vyos/vyos"
 	"strings"
 
 	"sigs.k8s.io/yaml"
