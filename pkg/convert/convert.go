@@ -3,6 +3,7 @@ package convert
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/nveeser/go-vyos/vyos"
 	"strings"
 
@@ -11,11 +12,13 @@ import (
 
 // YamlToCmds
 func YamlToCmds(config []byte, prefix string) ([]string, error) {
-	j, _ := yaml.YAMLToJSON(config)
-	var nestedMap map[string]interface{}
-	err := json.Unmarshal(j, &nestedMap)
+	j, err := yaml.YAMLToJSON(config)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error converting YAML to JSON: %w", err)
+	}
+	var nestedMap map[string]interface{}
+	if err := json.Unmarshal(j, &nestedMap); err != nil {
+		return nil, fmt.Errorf("error json.Unmarshal: %w", err)
 	}
 
 	var mm mapper

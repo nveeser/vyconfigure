@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"cmp"
+	"slices"
+
+	"github.com/nveeser/go-vyos/vyos"
 	"github.com/nveeser/vyconfigure/pkg/api"
 	"github.com/nveeser/vyconfigure/pkg/config"
 	"github.com/nveeser/vyconfigure/pkg/convert"
@@ -37,15 +41,14 @@ func apply(c *cli.Context) error {
 		return err
 	}
 
-	var toDelete []string
-	var toCreate []string
+	var reqs []vyos.ConfigRequest
 	if len(changelog) > 0 {
 		for _, change := range changelog {
 			if change.Type == "create" {
-				toCreate = append(toCreate, change.To.(string))
+				reqs = append(reqs, &vyos.SetRequest{change.To.(string)})
 			}
 			if change.Type == "delete" {
-				toDelete = append(toDelete, change.From.(string))
+				reqs = append(reqs, &vyos.DeleteRequest{change.From.(string)})
 			}
 		}
 	} else {
@@ -53,13 +56,21 @@ func apply(c *cli.Context) error {
 		return nil
 	}
 
-	dc := convert.CmdsToData(toDelete, "delete")
-	cc := convert.CmdsToData(toCreate, "set")
+	slices.SortFunc(reqs, compareConfigRequest)
+	return client.ConfigMode().Configure(c.Context, reqs...)
+}
 
-	err = client.ConfigMode().Configure(c.Context, append(dc, cc...)...)
-	if err != nil {
-		return err
+func compareConfigRequest(a, b vyos.ConfigRequest) int {
+	return cmp.Compare(rankConfigRequest(a), rankConfigRequest(b))
+}
+
+func rankConfigRequest(r vyos.ConfigRequest) int {
+	switch r.(type) {
+	case *vyos.DeleteRequest:
+		return -1
+	case *vyos.SetRequest:
+		return 1
+	default:
+		return 0
 	}
-
-	return nil
 }

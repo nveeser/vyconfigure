@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -62,7 +63,7 @@ func (r *Repo) ReadAsCmds() ([]string, error) {
 		configPath := strings.TrimSuffix(f.Name(), ".yaml")
 		cmds, err := convert.YamlToCmds(c, configPath+" ")
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error[%s]: %w", f.Name(), err)
 		}
 		res = append(res, cmds...)
 	}

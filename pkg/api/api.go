@@ -12,7 +12,13 @@ type Client struct {
 }
 
 func CreateClient(o *options.Options) (*Client, error) {
-	client, err := vyos.NewClient(o.Host, vyos.Token(o.ApiKey), vyos.Insecure(), vyos.DebugLogging())
+	opts := []vyos.Option{
+		vyos.Token(o.ApiKey),
+	}
+	if o.Insecure {
+		opts = append(opts, vyos.Insecure())
+	}
+	client, err := vyos.NewClient(o.Host, opts...)
 	if err != nil {
 		return nil, err
 	}
