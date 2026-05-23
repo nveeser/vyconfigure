@@ -3,7 +3,6 @@ package cmd
 import (
 	"os"
 
-	"github.com/nveeser/vyconfigure/pkg/options"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -11,8 +10,6 @@ import (
 var appVersion = "development"
 
 func Run() {
-	o := options.Options{}
-
 	app := cli.NewApp()
 	app.Name = "vyconfigure"
 	app.Version = appVersion
@@ -22,10 +19,11 @@ func Run() {
 		{Name: "Charlie Haley", Email: "charlie-haley@users.noreply.github.com"},
 	}
 	app.Flags = []cli.Flag{
-		&cli.StringFlag{Destination: &o.Host, Name: "host", Usage: "The hostname of the VyOS HTTP API.", EnvVars: []string{"VYCONFIGURE_HOST"}},
-		&cli.StringFlag{Destination: &o.ApiKey, Name: "api-key", Usage: "API key for the HTTP API.", EnvVars: []string{"VYCONFIGURE_API_KEY"}},
-		&cli.StringFlag{Destination: &o.ConfigDirectory, Name: "config-dir", Value: ".", Usage: "Directory where config is stored.", EnvVars: []string{"VYCONFIGURE_CONFIG_DIR"}},
-		&cli.BoolFlag{Destination: &o.Insecure, Name: "insecure", Usage: "Whether to skip verifying the SSL certificate.", EnvVars: []string{"VYCONFIGURE_INSECURE"}},
+		&cli.StringFlag{Name: "host", Usage: "The hostname of the VyOS HTTP API.", EnvVars: []string{"VYCONFIGURE_HOST"}},
+		&cli.StringFlag{Name: "api-key", Usage: "API key for the HTTP API.", EnvVars: []string{"VYCONFIGURE_API_KEY"}},
+		&cli.StringFlag{Name: "config-dir", Value: ".", Usage: "Directory where config is stored.", EnvVars: []string{"VYCONFIGURE_CONFIG_DIR"}},
+		&cli.BoolFlag{Name: "insecure", Usage: "Whether to skip verifying the SSL certificate.", EnvVars: []string{"VYCONFIGURE_INSECURE"}},
+		&cli.BoolFlag{Name: "debug", Usage: "Enable Debug mode.", EnvVars: []string{"VYCONFIGURE_DEBUG"}},
 	}
 	app.Commands = []*cli.Command{
 		{
@@ -43,6 +41,10 @@ func Run() {
 		{
 			Name: "plan", Aliases: []string{"d"}, Usage: "shows the diff between the current directory and VyOS instance",
 			Action: plan,
+		},
+		{
+			Name: "show", Aliases: []string{"sh"}, Usage: "shows the local instance",
+			Action: show,
 		},
 	}
 	app.Action = version

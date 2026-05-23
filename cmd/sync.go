@@ -1,29 +1,26 @@
 package cmd
 
 import (
-	"github.com/nveeser/vyconfigure/pkg/api"
 	"github.com/nveeser/vyconfigure/pkg/config"
-	"github.com/nveeser/vyconfigure/pkg/options"
 	"github.com/urfave/cli/v2"
 )
 
 func sync(c *cli.Context) error {
-	o := options.GetOptions(c)
-	repo := &config.Repo{o.ConfigDirectory}
-
-	client, err := api.CreateClient(o)
+	repo := &config.Repo{
+		ConfigDirectory: c.String("config-dir"),
+	}
+	client, err := createClient(c)
 	if err != nil {
 		return err
 	}
 
-	d, err := client.Retrieve(c.Context)
+	d, err := client.ReadConfig(c.Context)
 	if err != nil {
 		return err
 	}
-	err = repo.Write(d)
+	err = repo.WriteConfig(d)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

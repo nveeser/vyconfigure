@@ -2,55 +2,43 @@ package cmd
 
 import (
 	"github.com/fatih/color"
-	"github.com/nveeser/vyconfigure/pkg/api"
+	"github.com/nveeser/vyconfigure/pkg/commands"
 	"github.com/nveeser/vyconfigure/pkg/config"
-	"github.com/nveeser/vyconfigure/pkg/convert"
-	"github.com/nveeser/vyconfigure/pkg/options"
-	diff "github.com/r3labs/diff/v3"
 	"github.com/urfave/cli/v2"
 )
 
 func plan(c *cli.Context) error {
-	o := options.GetOptions(c)
-	repo := config.Repo{o.ConfigDirectory}
+	repo := &config.Repo{
+		ConfigDirectory: c.String("config-dir"),
+	}
 	// get remote config as cmds
-	client, err := api.CreateClient(o)
+	client, err := createClient(c)
 	if err != nil {
 		return err
 	}
-
-	d, err := client.RetrieveJson(c.Context)
+	rc, err := client.ReadConfig(c.Context)
 	if err != nil {
 		return err
 	}
-
-	rc, _ := convert.JsonToCmds(d, "")
-
-	// get local config as cmds
-	lc, err := repo.ReadAsCmds()
+	lc, err := repo.ReadConfig()
 	if err != nil {
 		return err
 	}
-
-	// get diff
-	changelog, err := diff.Diff(rc, lc)
+	changes, err := commands.DiffConfigs(rc, lc)
 	if err != nil {
 		return err
 	}
-
-	if len(changelog) > 0 {
-		println("Changes to be applied:")
-		for _, change := range changelog {
-			if change.Type == "create" {
-				color.Green("+ set " + change.To.(string))
-			}
-			if change.Type == "delete" {
-				color.Red("- delete " + change.From.(string))
-			}
-		}
-	} else {
+	if len(changes) == 0 {
 		println("No changes to apply.")
+		return nil
 	}
-
+	for _, change := range changes {
+		switch change.Type {
+		case commands.Added:
+			color.Green("+ set " + change.Command)
+		case commands.Deleted:
+			color.Red("- delete " + change.Command)
+		}
+	}
 	return nil
 }

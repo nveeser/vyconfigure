@@ -4,6 +4,7 @@ go 1.23.3
 
 require (
 	github.com/fatih/color v1.13.0
+	github.com/google/go-cmp v0.7.0
 	github.com/nveeser/go-vyos v0.9.5
 	github.com/r3labs/diff/v3 v3.0.0
 	github.com/sirupsen/logrus v1.8.1
