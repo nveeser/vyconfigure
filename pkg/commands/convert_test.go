@@ -11,64 +11,76 @@ import (
 
 func TestConvert(t *testing.T) {
 	cases := []struct {
-		name string
-		json string
-		yaml string
-		want []string
+		name   string
+		config map[string]any
+		want   []string
 	}{
-
 		{
 			name: "basic",
-			json: `{ "firewall": { "ipv6-name": { "WAN_IN": { "default-action": "drop" } } } }`,
-			yaml: `
-firewall:
-  ipv6-name: 
-    WAN_IN:
-      default-action: drop`,
+			config: map[string]any{
+				"firewall": map[string]any{
+					"ipv6-name": map[string]any{
+						"WAN_IN": map[string]any{
+							"default-action": "drop",
+						},
+					},
+				},
+			},
 			want: []string{
 				"test firewall ipv6-name WAN_IN default-action drop",
 			},
 		},
 		{
 			name: "empty object",
-			json: `{ "firewall": { "ipv6-name": { "WAN_IN": { "rule": { "30": {} } } } } }`,
-			yaml: `
-firewall:
-  ipv6-name:
-    WAN_IN:
-      rule:
-        "30": {}`,
+			config: map[string]any{
+				"firewall": map[string]any{
+					"ipv6-name": map[string]any{
+						"WAN_IN": map[string]any{
+							"rule": map[string]any{
+								"30": map[string]any{},
+							},
+						},
+					},
+				},
+			},
 			want: []string{
 				"test firewall ipv6-name WAN_IN rule 30",
 			},
 		},
 		{
 			name: "quote string",
-			json: `{ "firewall": { "ipv6-name": { "WAN_IN": { "rule": { "10": { "description": "Hello this is a rule" } } } } } } `,
-			yaml: `
-firewall:
-  ipv6-name:
-    WAN_IN:
-      rule:
-        "10":
-            description: Hello this is a rule
-`,
+			config: map[string]any{
+				"firewall": map[string]any{
+					"ipv6-name": map[string]any{
+						"WAN_IN": map[string]any{
+							"rule": map[string]any{
+								"10": map[string]any{
+									"description": "Hello this is a rule",
+								},
+							},
+						},
+					},
+				},
+			},
 			want: []string{
-				"test firewall ipv6-name WAN_IN rule 10 description \"Hello this is a rule\"",
+				"test firewall ipv6-name WAN_IN rule 10 description 'Hello this is a rule'",
 			},
 		},
 		{
 			name: "slice",
-			json: `{ "service": { "mdns": { "repeater": { "interface": [ "eth1.10", "eth2.20", "eth1.50" ] } } } }`,
-			yaml: `
-service:
-    mdns:
-        repeater:
-            interface:
-            - eth1.10
-            - eth2.20
-            - eth1.50
-`,
+			config: map[string]any{
+				"service": map[string]any{
+					"mdns": map[string]any{
+						"repeater": map[string]any{
+							"interface": []any{
+								"eth1.10",
+								"eth2.20",
+								"eth1.50",
+							},
+						},
+					},
+				},
+			},
 			want: []string{
 				"test service mdns repeater interface eth1.10",
 				"test service mdns repeater interface eth2.20",
@@ -76,29 +88,20 @@ service:
 			},
 		},
 		{
-			name: "large",
-			json: largeJSON,
-			yaml: largeYAML,
-			want: largeCommands,
+			name:   "large",
+			config: largeConfig,
+			want:   largeCommands,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Run("FromJSON", func(t *testing.T) {
-				got, err := FromJSON([]byte(tc.json), "test")
+			t.Run("FromConfigMap", func(t *testing.T) {
+				got, err := FromConfigMap(tc.config, "test")
 
 				assert.NoError(t, err)
 				if diff := cmp.Diff(tc.want, got, cmpopts.SortSlices(strings.Compare)); diff != "" {
-					t.Errorf("FromJSON() mismatch (-want +got):\n%s", diff)
-				}
-			})
-			t.Run("FromYAML", func(t *testing.T) {
-				got, err := FromYAML([]byte(tc.yaml), "test")
-
-				assert.NoError(t, err)
-				if diff := cmp.Diff(tc.want, got, cmpopts.SortSlices(strings.Compare)); diff != "" {
-					t.Errorf("FromYAML() mismatch (-want +got):\n%s", diff)
+					t.Errorf("FromConfigMap() mismatch (-want +got):\n%s", diff)
 				}
 			})
 		})
@@ -106,10 +109,46 @@ service:
 }
 
 var (
+	largeConfig = map[string]any{
+		"firewall": map[string]any{
+			"ipv6-name": map[string]any{
+				"WAN_IN": map[string]any{
+					"default-action": "drop",
+					"rule": map[string]any{
+						"10": map[string]any{
+							"description": "Hello this is a rule",
+							"action":      "accept",
+							"state": map[string]any{
+								"established": "enable",
+								"related":     "enable",
+							},
+						},
+						"20": map[string]any{
+							"action":   "accept",
+							"protocol": "ipv6-icmp",
+						},
+						"30": map[string]any{},
+					},
+				},
+			},
+		},
+		"service": map[string]any{
+			"mdns": map[string]any{
+				"repeater": map[string]any{
+					"interface": []any{
+						"eth1.10",
+						"eth2.20",
+						"eth1.50",
+					},
+				},
+			},
+		},
+	}
+
 	largeCommands = []string{
 		"test firewall ipv6-name WAN_IN default-action drop",
 		"test firewall ipv6-name WAN_IN rule 10 action accept",
-		"test firewall ipv6-name WAN_IN rule 10 description \"Hello this is a rule\"",
+		"test firewall ipv6-name WAN_IN rule 10 description 'Hello this is a rule'",
 		"test firewall ipv6-name WAN_IN rule 10 state established enable",
 		"test firewall ipv6-name WAN_IN rule 10 state related enable",
 		"test firewall ipv6-name WAN_IN rule 20 action accept",
@@ -119,67 +158,4 @@ var (
 		"test service mdns repeater interface eth2.20",
 		"test service mdns repeater interface eth1.50",
 	}
-
-	largeYAML = `
-firewall:
- ipv6-name:
-   WAN_IN:
-     default-action: drop
-     rule:
-       "10":
-           description: Hello this is a rule
-           action: accept
-           state:
-             established: enable
-             related: enable
-       "20":
-           action: accept
-           protocol: ipv6-icmp
-       "30": {}
-service:
-   mdns:
-       repeater:
-           interface:
-           - eth1.10
-           - eth2.20
-           - eth1.50
-`
-
-	largeJSON = `
-   {
-       "firewall": {
-           "ipv6-name": {
-               "WAN_IN": {
-                   "default-action": "drop",
-                   "rule": {
-                       "10": {
-							"description": "Hello this is a rule",
-                           "action": "accept",
-                           "state": {
-                               "established": "enable",
-                               "related": "enable"
-                           }
-                       },
-                       "20": {
-                           "action": "accept",
-                           "protocol": "ipv6-icmp"
-                       },
-                       "30": {}
-                   }
-               }
-           }
-       },
-       "service": {
-           "mdns": {
-               "repeater": {
-                   "interface": [
-                       "eth1.10",
-                       "eth2.20",
-                       "eth1.50"
-                   ]
-               }
-           }
-       }
-   }
-   `
 )

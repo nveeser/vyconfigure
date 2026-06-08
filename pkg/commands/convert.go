@@ -1,33 +1,15 @@
 package commands
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"slices"
 	"strings"
 	"unicode"
-
-	"sigs.k8s.io/yaml"
 )
 
-// FromYAML
-func FromYAML(config []byte, prefix string) ([]string, error) {
-	j, err := yaml.YAMLToJSON(config)
-	if err != nil {
-		return nil, fmt.Errorf("error converting YAML to JSON: %w", err)
-	}
-	return FromJSON(j, prefix)
-}
-
-// FromJSON
-func FromJSON(config []byte, prefix string) ([]string, error) {
-	var nestedMap map[string]any
-	err := json.Unmarshal(config, &nestedMap)
-	if err != nil {
-		return nil, err
-	}
-	return FromConfigMap(nestedMap, prefix)
+type Command struct {
+	Path  string
+	Value string
 }
 
 func FromConfigMap(config map[string]interface{}, prefix string) ([]string, error) {
@@ -90,9 +72,9 @@ func (m *mapper) mapValue(cmd string, v any) error {
 	case string:
 		if strings.ContainsFunc(v, unicode.IsSpace) {
 			var b strings.Builder
-			b.WriteRune('"')
+			b.WriteRune('\'')
 			b.WriteString(v)
-			b.WriteRune('"')
+			b.WriteRune('\'')
 			v = b.String()
 		}
 		m.cmds = append(m.cmds, join(cmd, v))
