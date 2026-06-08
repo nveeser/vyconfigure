@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/nveeser/go-vyos/vyos"
 	"github.com/nveeser/vyconfigure/pkg/commands"
 	"github.com/nveeser/vyconfigure/pkg/config"
 	"github.com/urfave/cli/v2"
@@ -23,23 +24,24 @@ func apply(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	changes, err := commands.DiffConfigs(rc, lc)
+
+	it, err := commands.DiffConfigs(rc, lc)
 	if err != nil {
 		return err
 	}
 
-	if len(changes) == 0 {
+	var reqs []vyos.ConfigRequest
+	for change, entry := range it {
+		switch change {
+		case commands.Added:
+			reqs = append(reqs, &vyos.SetRequest{Path: entry.Path, Value: entry.Value})
+		case commands.Deleted:
+			reqs = append(reqs, &vyos.DeleteRequest{Path: entry.Path, Value: entry.Value})
+		}
+	}
+	if len(reqs) == 0 {
 		println("No changes to apply.")
 		return nil
 	}
-	var adds, dels []string
-	for _, change := range changes {
-		switch change.Type {
-		case commands.Added:
-			adds = append(adds, change.Command)
-		case commands.Deleted:
-			dels = append(dels, change.Command)
-		}
-	}
-	return client.WriteCmds(c.Context, adds, dels)
+	return client.WriteCmds(c.Context, reqs)
 }

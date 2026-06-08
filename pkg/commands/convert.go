@@ -1,86 +1,82 @@
 package commands
 
 import (
-	"errors"
+	"fmt"
+	"reflect"
 	"slices"
 	"strings"
-	"unicode"
 )
 
-type Command struct {
+type Entry struct {
 	Path  string
 	Value string
 }
 
-func FromConfigMap(config map[string]interface{}, prefix string) ([]string, error) {
+func (c Entry) String() string {
+	return join(c.Path, c.Value)
+}
+
+func FromConfigMap(config map[string]interface{}, prefix string) ([]Entry, error) {
 	var mm mapper
-	err := mm.mapObj(prefix, config)
+	err := mm.processObj(prefix, config)
 	return mm.cmds, err
 }
 
 type mapper struct {
-	cmds []string
+	cmds []Entry
 }
 
-func (m *mapper) mapObj(cmd string, nm any) error {
+func (m *mapper) processObj(cmd string, nm any) error {
 	switch nm := nm.(type) {
 	case map[string]any:
 		for k, v := range nm {
-			if err := m.mapKV(cmd, k, v); err != nil {
+			if err := m.processKV(cmd, k, v); err != nil {
 				return err
 			}
 		}
 	case []any:
-		return m.mapSlice(cmd+" ", nm)
+		return m.processSlice(cmd+" ", nm)
 	default:
-		return errors.New("invalid input, must be a map or slice of interface")
+		return fmt.Errorf("invalid input, must be a map or slice of interface: %s %T", cmd, nm)
 	}
 	return nil
 }
 
-func (m *mapper) mapKV(cmd string, k string, v any) error {
+func (m *mapper) processKV(cmd string, k string, v any) error {
 	cmd = join(cmd, k)
 	switch vt := v.(type) {
 	case map[string]any:
 		if len(vt) == 0 {
-			return m.mapValue(cmd, "")
+			return m.processValue(cmd, "")
 		} else {
-			return m.mapValue(cmd, v)
+			return m.processValue(cmd, vt)
 		}
-
 	case []any:
-		return m.mapSlice(cmd, vt)
+		return m.processSlice(cmd, vt)
 	default:
-		return m.mapValue(cmd, v)
+		return m.processValue(cmd, v)
 	}
 }
 
-func (m *mapper) mapSlice(cmd string, vt []any) error {
+func (m *mapper) processSlice(cmd string, vt []any) error {
 	for _, val := range vt {
-		if err := m.mapValue(cmd, val); err != nil {
+		if err := m.processValue(cmd, val); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (m *mapper) mapValue(cmd string, v any) error {
+func (m *mapper) processValue(cmd string, v any) error {
 	switch v := v.(type) {
-	case map[string]any, []any:
-		return m.mapObj(cmd, v)
-
+	case map[string]any:
+		return m.processObj(cmd, v)
+	case []any:
+		return m.processObj(cmd, v)
 	case string:
-		if strings.ContainsFunc(v, unicode.IsSpace) {
-			var b strings.Builder
-			b.WriteRune('\'')
-			b.WriteString(v)
-			b.WriteRune('\'')
-			v = b.String()
-		}
-		m.cmds = append(m.cmds, join(cmd, v))
-
+		m.cmds = append(m.cmds, Entry{Path: cmd, Value: v})
 	default:
-		m.cmds = append(m.cmds, cmd+" "+v.(string))
+		panic("invalid configuration type: " + reflect.TypeOf(v).String())
 	}
 	return nil
 }

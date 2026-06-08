@@ -3,7 +3,6 @@ package commands
 import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,7 @@ func TestConvert(t *testing.T) {
 	cases := []struct {
 		name   string
 		config map[string]any
-		want   []string
+		want   []Entry
 	}{
 		{
 			name: "basic",
@@ -26,8 +25,8 @@ func TestConvert(t *testing.T) {
 					},
 				},
 			},
-			want: []string{
-				"test firewall ipv6-name WAN_IN default-action drop",
+			want: []Entry{
+				{Path: "test firewall ipv6-name WAN_IN default-action", Value: "drop"},
 			},
 		},
 		{
@@ -43,8 +42,8 @@ func TestConvert(t *testing.T) {
 					},
 				},
 			},
-			want: []string{
-				"test firewall ipv6-name WAN_IN rule 30",
+			want: []Entry{
+				{Path: "test firewall ipv6-name WAN_IN rule 30", Value: ""},
 			},
 		},
 		{
@@ -62,8 +61,8 @@ func TestConvert(t *testing.T) {
 					},
 				},
 			},
-			want: []string{
-				"test firewall ipv6-name WAN_IN rule 10 description 'Hello this is a rule'",
+			want: []Entry{
+				{Path: "test firewall ipv6-name WAN_IN rule 10 description", Value: "Hello this is a rule"},
 			},
 		},
 		{
@@ -81,10 +80,10 @@ func TestConvert(t *testing.T) {
 					},
 				},
 			},
-			want: []string{
-				"test service mdns repeater interface eth1.10",
-				"test service mdns repeater interface eth2.20",
-				"test service mdns repeater interface eth1.50",
+			want: []Entry{
+				{Path: "test service mdns repeater interface", Value: "eth1.10"},
+				{Path: "test service mdns repeater interface", Value: "eth2.20"},
+				{Path: "test service mdns repeater interface", Value: "eth1.50"},
 			},
 		},
 		{
@@ -100,7 +99,10 @@ func TestConvert(t *testing.T) {
 				got, err := FromConfigMap(tc.config, "test")
 
 				assert.NoError(t, err)
-				if diff := cmp.Diff(tc.want, got, cmpopts.SortSlices(strings.Compare)); diff != "" {
+				less := func(a, b Entry) bool {
+					return a.String() < b.String()
+				}
+				if diff := cmp.Diff(tc.want, got, cmpopts.SortSlices(less)); diff != "" {
 					t.Errorf("FromConfigMap() mismatch (-want +got):\n%s", diff)
 				}
 			})
@@ -145,17 +147,17 @@ var (
 		},
 	}
 
-	largeCommands = []string{
-		"test firewall ipv6-name WAN_IN default-action drop",
-		"test firewall ipv6-name WAN_IN rule 10 action accept",
-		"test firewall ipv6-name WAN_IN rule 10 description 'Hello this is a rule'",
-		"test firewall ipv6-name WAN_IN rule 10 state established enable",
-		"test firewall ipv6-name WAN_IN rule 10 state related enable",
-		"test firewall ipv6-name WAN_IN rule 20 action accept",
-		"test firewall ipv6-name WAN_IN rule 20 protocol ipv6-icmp",
-		"test firewall ipv6-name WAN_IN rule 30",
-		"test service mdns repeater interface eth1.10",
-		"test service mdns repeater interface eth2.20",
-		"test service mdns repeater interface eth1.50",
+	largeCommands = []Entry{
+		{Path: "test firewall ipv6-name WAN_IN default-action", Value: "drop"},
+		{Path: "test firewall ipv6-name WAN_IN rule 10 action", Value: "accept"},
+		{Path: "test firewall ipv6-name WAN_IN rule 10 description", Value: "Hello this is a rule"},
+		{Path: "test firewall ipv6-name WAN_IN rule 10 state established", Value: "enable"},
+		{Path: "test firewall ipv6-name WAN_IN rule 10 state related", Value: "enable"},
+		{Path: "test firewall ipv6-name WAN_IN rule 20 action", Value: "accept"},
+		{Path: "test firewall ipv6-name WAN_IN rule 20 protocol", Value: "ipv6-icmp"},
+		{Path: "test firewall ipv6-name WAN_IN rule 30", Value: ""},
+		{Path: "test service mdns repeater interface", Value: "eth1.10"},
+		{Path: "test service mdns repeater interface", Value: "eth2.20"},
+		{Path: "test service mdns repeater interface", Value: "eth1.50"},
 	}
 )

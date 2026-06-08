@@ -1,6 +1,8 @@
 package commands
 
-import r3diff "github.com/r3labs/diff/v3"
+import (
+	"iter"
+)
 
 type ChangeType string
 
@@ -9,36 +11,43 @@ const (
 	Deleted ChangeType = "DELETED"
 )
 
-type Change struct {
-	Type    ChangeType
-	Command string
+func DiffConfigs(from, to map[string]any) (iter.Seq2[ChangeType, Entry], error) {
+	var fm mapper
+	err := fm.processObj("", from)
+	if err != nil {
+		return nil, err
+	}
+	var tm mapper
+	err = tm.processObj("", to)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(yield func(ChangeType, Entry) bool) {
+		toMap := index(tm.cmds)
+		fromMap := index(fm.cmds)
+
+		for _, e := range fm.cmds {
+			if _, exists := toMap[e.String()]; !exists {
+				if !yield(Deleted, e) {
+					return
+				}
+			}
+		}
+		for _, e := range tm.cmds {
+			if _, exists := fromMap[e.String()]; !exists {
+				if !yield(Added, e) {
+					return
+				}
+			}
+		}
+	}, nil
 }
 
-func DiffConfigs(from, to map[string]any) ([]Change, error) {
-	var m1 mapper
-	err := m1.mapObj("", from)
-	if err != nil {
-		return nil, err
+func index(f []Entry) map[string]Entry {
+	m := make(map[string]Entry, len(f))
+	for _, item := range f {
+		m[item.String()] = item
 	}
-	var m2 mapper
-	err = m2.mapObj("", to)
-	if err != nil {
-		return nil, err
-	}
-
-	// get diff
-	changelog, err := r3diff.Diff(m1.cmds, m2.cmds)
-	if err != nil {
-		return nil, err
-	}
-	var diff []Change
-	for _, change := range changelog {
-		if change.Type == "create" {
-			diff = append(diff, Change{Added, change.To.(string)})
-		}
-		if change.Type == "delete" {
-			diff = append(diff, Change{Deleted, change.From.(string)})
-		}
-	}
-	return diff, nil
+	return m
 }

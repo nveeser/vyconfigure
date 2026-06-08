@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	"cmp"
 	"github.com/fatih/color"
 	"github.com/nveeser/vyconfigure/pkg/commands"
 	"github.com/nveeser/vyconfigure/pkg/config"
 	"github.com/urfave/cli/v2"
-	"sort"
+	"slices"
 )
 
 func show(c *cli.Context) error {
@@ -20,9 +21,11 @@ func show(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	sort.Strings(cmds)
+	slices.SortFunc(cmds, func(a, b commands.Entry) int {
+		return cmp.Or(cmp.Compare(a.Path, b.Path), cmp.Compare(a.Value, b.Value))
+	})
 	for _, cmd := range cmds {
-		color.Green(" set " + cmd)
+		color.Green(" set " + cmd.String())
 	}
 
 	return nil

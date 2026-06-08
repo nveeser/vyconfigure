@@ -28,17 +28,19 @@ func plan(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if len(changes) == 0 {
+	var diffs bool
+	for change, entry := range changes {
+		diffs = true
+		switch change {
+		case commands.Added:
+			color.Green("+ set " + entry.Path + " " + entry.Value)
+		case commands.Deleted:
+			color.Green("- delete " + entry.Path + " " + entry.Value)
+		}
+	}
+	if !diffs {
 		println("No changes to apply.")
 		return nil
-	}
-	for _, change := range changes {
-		switch change.Type {
-		case commands.Added:
-			color.Green("+ set " + change.Command)
-		case commands.Deleted:
-			color.Red("- delete " + change.Command)
-		}
 	}
 	return nil
 }
