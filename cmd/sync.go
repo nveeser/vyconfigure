@@ -18,6 +18,7 @@ func sync(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
 	err = repo.WriteConfig(d)
 	if err != nil {
 		return err

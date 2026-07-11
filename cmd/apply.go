@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"cmp"
 	"github.com/nveeser/go-vyos/vyos"
 	"github.com/nveeser/vyconfigure/pkg/commands"
 	"github.com/nveeser/vyconfigure/pkg/config"
 	"github.com/urfave/cli/v2"
+	"slices"
 )
 
 func apply(c *cli.Context) error {
@@ -43,5 +45,21 @@ func apply(c *cli.Context) error {
 		println("No changes to apply.")
 		return nil
 	}
-	return client.WriteCmds(c.Context, reqs)
+	slices.SortFunc(reqs, compareConfigRequest)
+	return client.ConfigMode().Configure(c.Context, reqs...)
+}
+
+func compareConfigRequest(a, b vyos.ConfigRequest) int {
+	return cmp.Compare(rankConfigRequest(a), rankConfigRequest(b))
+}
+
+func rankConfigRequest(r vyos.ConfigRequest) int {
+	switch r.(type) {
+	case *vyos.DeleteRequest:
+		return -1
+	case *vyos.SetRequest:
+		return 1
+	default:
+		return 0
+	}
 }

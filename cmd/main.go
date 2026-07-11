@@ -19,11 +19,31 @@ func Run() {
 		{Name: "Charlie Haley", Email: "charlie-haley@users.noreply.github.com"},
 	}
 	app.Flags = []cli.Flag{
-		&cli.StringFlag{Name: "host", Usage: "The hostname of the VyOS HTTP API.", EnvVars: []string{"VYCONFIGURE_HOST"}},
-		&cli.StringFlag{Name: "api-key", Usage: "API key for the HTTP API.", EnvVars: []string{"VYCONFIGURE_API_KEY"}},
-		&cli.StringFlag{Name: "config-dir", Value: ".", Usage: "Directory where config is stored.", EnvVars: []string{"VYCONFIGURE_CONFIG_DIR"}},
-		&cli.BoolFlag{Name: "insecure", Usage: "Whether to skip verifying the SSL certificate.", EnvVars: []string{"VYCONFIGURE_INSECURE"}},
-		&cli.BoolFlag{Name: "debug", Usage: "Enable Debug mode.", EnvVars: []string{"VYCONFIGURE_DEBUG"}},
+		&cli.StringFlag{
+			Name:    "host",
+			Usage:   "The hostname of the VyOS HTTP API.",
+			EnvVars: []string{"VYCONFIGURE_HOST"},
+		},
+		&cli.StringFlag{
+			Name:    "api-key",
+			Usage:   "API key for the HTTP API.",
+			EnvVars: []string{"VYCONFIGURE_API_KEY"},
+		},
+		&cli.StringFlag{
+			Name: "config-dir", Value: ".",
+			Usage:   "Directory where config is stored.",
+			EnvVars: []string{"VYCONFIGURE_CONFIG_DIR"},
+		},
+		&cli.BoolFlag{
+			Name:    "insecure",
+			Usage:   "Whether to skip verifying the SSL certificate.",
+			EnvVars: []string{"VYCONFIGURE_INSECURE"},
+		},
+		&cli.BoolFlag{
+			Name:    "debug",
+			Usage:   "Enable Debug mode.",
+			EnvVars: []string{"VYCONFIGURE_DEBUG"},
+		},
 	}
 	app.Commands = []*cli.Command{
 		{
@@ -31,15 +51,15 @@ func Run() {
 			Action: version,
 		},
 		{
-			Name: "apply", Aliases: []string{"a"}, Usage: "applies the current configuration.",
+			Name: "apply", Aliases: []string{"a", "push"}, Usage: "applies the current configuration.",
 			Action: apply,
 		},
 		{
-			Name: "sync", Aliases: []string{"s"}, Usage: "syncs configuration to the current directory through the HTTP API.",
+			Name: "sync", Aliases: []string{"s", "pull"}, Usage: "syncs configuration to the current directory through the HTTP API.",
 			Action: sync,
 		},
 		{
-			Name: "plan", Aliases: []string{"d"}, Usage: "shows the diff between the current directory and VyOS instance",
+			Name: "plan", Aliases: []string{"d", "diff"}, Usage: "shows the diff between the current directory and VyOS instance",
 			Action: plan,
 		},
 		{

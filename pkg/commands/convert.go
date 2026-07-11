@@ -16,7 +16,7 @@ func (c Entry) String() string {
 	return join(c.Path, c.Value)
 }
 
-func FromConfigMap(config map[string]interface{}, prefix string) ([]Entry, error) {
+func FromConfigMap(config any, prefix string) ([]Entry, error) {
 	var mm mapper
 	err := mm.processObj(prefix, config)
 	return mm.cmds, err

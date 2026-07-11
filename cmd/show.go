@@ -13,11 +13,13 @@ func show(c *cli.Context) error {
 	repo := &config.Repo{
 		ConfigDirectory: c.String("config-dir"),
 	}
-	config, err := repo.ReadConfig()
+
+	cfg, err := repo.ReadConfig()
 	if err != nil {
 		return err
 	}
-	cmds, err := commands.FromConfigMap(config, "")
+
+	cmds, err := commands.FromConfigMap(cfg, "")
 	if err != nil {
 		return err
 	}

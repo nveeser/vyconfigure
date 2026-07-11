@@ -11,7 +11,7 @@ const (
 	Deleted ChangeType = "DELETED"
 )
 
-func DiffConfigs(from, to map[string]any) (iter.Seq2[ChangeType, Entry], error) {
+func DiffConfigs(from, to any) (iter.Seq2[ChangeType, Entry], error) {
 	var fm mapper
 	err := fm.processObj("", from)
 	if err != nil {

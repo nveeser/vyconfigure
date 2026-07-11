@@ -1,0 +1,95 @@
+package config
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	diffcmp "github.com/google/go-cmp/cmp"
+)
+
+func TestRepo_WriteAndReadConfig(t *testing.T) {
+	tmpDir := t.TempDir()
+	r := &Repo{ConfigDirectory: tmpDir}
+
+	testData := map[string]any{
+		"system": map[string]any{
+			"host-name":   "vyos",
+			"domain-name": "local",
+		},
+		"interfaces": map[string]any{
+			"ethernet": map[string]any{
+				"eth0": map[string]any{
+					"address": "dhcp",
+				},
+			},
+		},
+	}
+
+	err := r.WriteConfig(testData)
+	if err != nil {
+		t.Fatalf("WriteConfig() unexpected error: %v", err)
+	}
+
+	systemFile := filepath.Join(tmpDir, "system.yaml")
+	if _, err := os.Stat(systemFile); os.IsNotExist(err) {
+		t.Errorf("system.yaml was not created")
+	}
+
+	interfacesFile := filepath.Join(tmpDir, "interfaces.yaml")
+	if _, err := os.Stat(interfacesFile); os.IsNotExist(err) {
+		t.Errorf("interfaces.yaml was not created")
+	}
+
+	err = os.WriteFile(filepath.Join(tmpDir, "readme.txt"), []byte("should be ignored"), 0644)
+	if err != nil {
+		t.Fatalf("failed to write dummy text file: %v", err)
+	}
+
+	readData, err := r.ReadConfig()
+	if err != nil {
+		t.Fatalf("ReadConfig() unexpected error: %v", err)
+	}
+
+	if len(readData) != 2 {
+		t.Errorf("ReadConfig() returned %d keys, want 2", len(readData))
+	}
+
+	if _, ok := readData["readme"]; ok {
+		t.Errorf("ReadConfig() should not have read readme.txt")
+	}
+
+	if diff := diffcmp.Diff(testData, readData); diff != "" {
+		t.Errorf("ReadConfig() data mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestRepo_ReadConfig_Error(t *testing.T) {
+	r := &Repo{ConfigDirectory: "/nonexistent/dir/that/does/not/exist"}
+	_, err := r.ReadConfig()
+	if err == nil {
+		t.Error("expected error when reading from non-existent directory, got nil")
+	}
+}
+
+func TestRepo_ReadConfig_InvalidYAML(t *testing.T) {
+	tmpDir := t.TempDir()
+	err := os.WriteFile(filepath.Join(tmpDir, "invalid.yaml"), []byte("invalid-yaml : : :"), 0644)
+	if err != nil {
+		t.Fatalf("failed to write invalid yaml: %v", err)
+	}
+
+	r := &Repo{ConfigDirectory: tmpDir}
+	_, err = r.ReadConfig()
+	if err == nil {
+		t.Error("expected error when reading invalid yaml file, got nil")
+	}
+}
+
+func TestRepo_WriteConfig_Error(t *testing.T) {
+	r := &Repo{ConfigDirectory: "/nonexistent/dir/that/does/not/exist"}
+	err := r.WriteConfig(map[string]any{"test": "data"})
+	if err == nil {
+		t.Error("expected error when writing to non-existent directory, got nil")
+	}
+}
