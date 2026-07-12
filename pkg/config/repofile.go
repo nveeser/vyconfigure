@@ -15,16 +15,28 @@ type fileMerger struct {
 
 func (rm *fileMerger) add(basename string, contents any) {
 	yamlPath := basename
+	keepPrefix := false
 	if mapping, ok := findMapping(rm.mc, basename); ok {
 		yamlPath = mapping.Path
+		keepPrefix = mapping.KeepPath
 	}
-	rm.repoFiles = append(rm.repoFiles, newRepoFile(basename, yamlPath, contents))
+	rm.repoFiles = append(rm.repoFiles, &repoFile{
+		basename:   basename,
+		yamlPath:   yamlPath,
+		steps:      strings.Split(yamlPath, "."),
+		contents:   contents,
+		keepPrefix: keepPrefix,
+	})
 }
 
 func (rm *fileMerger) merge() map[string]any {
 	out := map[string]any{}
 	for _, repoFile := range rm.repoFiles {
-		out = mergeMap(out, addPrefix(repoFile.contents, repoFile.steps))
+		var contents any = repoFile.contents
+		if !repoFile.keepPrefix {
+			contents = addPrefix(repoFile.contents, repoFile.steps)
+		}
+		out = mergeMap(out, contents.(map[string]interface{}))
 	}
 	return out
 }
@@ -51,32 +63,36 @@ type fileSplitter struct {
 func (rm *fileSplitter) split(data map[string]any) []*repoFile {
 	var sections []*repoFile
 	for _, entry := range rm.mc.Mappings {
-		sections = append(sections, newRepoFile(entry.File, entry.Path, nil))
+		var contents any = nil
+		sections = append(sections, &repoFile{
+			basename:   entry.File,
+			yamlPath:   entry.Path,
+			steps:      strings.Split(entry.Path, "."),
+			contents:   contents,
+			keepPrefix: entry.KeepPath,
+		})
 	}
 	slices.SortFunc(sections, compareFileEntry)
 	for _, sf := range sections {
-		data, sf.contents = splitMap(data, sf.steps, false)
+		data, sf.contents = splitMap(data, sf.steps, sf.keepPrefix)
 	}
 	for k, v := range data {
-		sections = append(sections, newRepoFile(k, k, v))
+		sections = append(sections, &repoFile{
+			basename: k,
+			yamlPath: k,
+			steps:    strings.Split(k, "."),
+			contents: v,
+		})
 	}
 	return sections
 }
 
 type repoFile struct {
-	basename string
-	yamlPath string
-	steps    []string
-	contents any
-}
-
-func newRepoFile(basename string, yamlPath string, contents any) *repoFile {
-	return &repoFile{
-		basename: basename,
-		yamlPath: yamlPath,
-		steps:    strings.Split(yamlPath, "."),
-		contents: contents,
-	}
+	basename   string
+	yamlPath   string
+	steps      []string
+	keepPrefix bool
+	contents   any
 }
 
 func compareFileEntry(a, b *repoFile) int {

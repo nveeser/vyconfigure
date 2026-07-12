@@ -9,6 +9,7 @@ import (
 func createClient(c *cli.Context) (*config.Client, error) {
 	opts := []vyos.Option{
 		vyos.Token(c.String("api-key")),
+		vyos.Timeout(0),
 	}
 	if c.Bool("insecure") {
 		opts = append(opts, vyos.Insecure())

@@ -26,8 +26,9 @@ type MappingConfig struct {
 }
 
 type MappingEntry struct {
-	File string `yaml:"file"`
-	Path string `yaml:"path"`
+	File     string `yaml:"file"`
+	Path     string `yaml:"path"`
+	KeepPath bool   `yaml:"strip"`
 }
 
 // WriteConfig writes existing VyOS config to the local filesystem

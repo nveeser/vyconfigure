@@ -33,9 +33,9 @@ func plan(c *cli.Context) error {
 		diffs = true
 		switch change {
 		case commands.Added:
-			color.Green("+ set " + entry.Path + " " + entry.Value)
+			color.Green("set " + entry.Path + " " + entry.Value)
 		case commands.Deleted:
-			color.Green("- delete " + entry.Path + " " + entry.Value)
+			color.Green("delete " + entry.Path + " " + entry.Value)
 		}
 	}
 	if !diffs {
