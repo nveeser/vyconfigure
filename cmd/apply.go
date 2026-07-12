@@ -3,31 +3,25 @@ package cmd
 import (
 	"cmp"
 	"github.com/nveeser/go-vyos/vyos"
-	"github.com/nveeser/vyconfigure/pkg/commands"
-	"github.com/nveeser/vyconfigure/pkg/config"
+	"github.com/nveeser/vyconfigure/commands"
 	"github.com/urfave/cli/v2"
 	"slices"
 )
 
 func apply(c *cli.Context) error {
-	repo := &config.Repo{
-		ConfigDirectory: c.String("config-dir"),
-	}
-	// get remote config as cmds
-	client, err := createClient(c)
+	repo, client, err := newRepoAndClient(c)
 	if err != nil {
 		return err
 	}
-	rc, err := client.ReadConfig(c.Context)
+	remote, err := client.ReadConfig(c.Context)
 	if err != nil {
 		return err
 	}
-	lc, err := repo.ReadConfig()
+	local, err := repo.ReadConfig()
 	if err != nil {
 		return err
 	}
-
-	it, err := commands.DiffConfigs(rc, lc)
+	it, err := commands.DiffConfigs(remote, local)
 	if err != nil {
 		return err
 	}
@@ -46,7 +40,15 @@ func apply(c *cli.Context) error {
 		return nil
 	}
 	slices.SortFunc(reqs, compareConfigRequest)
-	return client.ConfigMode().Configure(c.Context, reqs...)
+	err = client.ConfigMode().Configure(c.Context, reqs...)
+	//var httpErr *vyos.HTTPError
+	//if errors.As(err, &httpErr) {
+	//	httpErr.
+	//}
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func compareConfigRequest(a, b vyos.ConfigRequest) int {

@@ -24,4 +24,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// replace github.com/nveeser/go-vyos => ../go-vyos
+replace github.com/nveeser/go-vyos => ../go-vyos

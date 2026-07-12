@@ -1,4 +1,4 @@
-package config
+package section
 
 import (
 	"testing"
@@ -15,7 +15,7 @@ func TestSplitMap(t *testing.T) {
 		wantSub    any
 	}{
 		{
-			name: "split single level key",
+			name: "Split single level key",
 			path: []string{"foo"},
 			input: map[string]any{
 				"foo": "bar",
@@ -29,7 +29,7 @@ func TestSplitMap(t *testing.T) {
 			},
 		},
 		{
-			name: "split nested key",
+			name: "Split nested key",
 			path: []string{"foo", "bar"},
 			input: map[string]any{
 				"foo": map[string]any{
@@ -51,7 +51,7 @@ func TestSplitMap(t *testing.T) {
 			},
 		},
 		{
-			name: "split non-existent key",
+			name: "Split non-existent key",
 			path: []string{"nonexistent"},
 			input: map[string]any{
 				"foo": "bar",
@@ -62,7 +62,7 @@ func TestSplitMap(t *testing.T) {
 			wantSub: nil,
 		},
 		{
-			name: "split nested non-existent key",
+			name: "Split nested non-existent key",
 			path: []string{"foo", "nonexistent"},
 			input: map[string]any{
 				"foo": map[string]any{
@@ -79,7 +79,7 @@ func TestSplitMap(t *testing.T) {
 			},
 		},
 		{
-			name: "split path through non-map",
+			name: "Split path through non-map",
 			path: []string{"foo", "bar"},
 			input: map[string]any{
 				"foo": "not-a-map",
@@ -94,8 +94,8 @@ func TestSplitMap(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			inputCopy := cloneMap(tt.input)
-			entry := repoFile{steps: tt.path}
-			gotRemain, gotSub := splitMap(inputCopy, entry.steps, true)
+			entry := Section{steps: tt.path}
+			gotRemain, gotSub := SplitMap(inputCopy, entry.steps, true)
 			if diff := diffcmp.Diff(tt.wantRemain, gotRemain); diff != "" {
 				t.Errorf("Extract() gotRemain mismatch (-want +got):\n%s", diff)
 			}
@@ -155,7 +155,7 @@ func TestMergeMap(t *testing.T) {
 			},
 		},
 		{
-			name: "deep merge nested maps",
+			name: "deep Merge nested maps",
 			dest: map[string]any{
 				"nested": map[string]any{
 					"a": 1,

@@ -1,30 +1,26 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/fatih/color"
-	"github.com/nveeser/vyconfigure/pkg/commands"
-	"github.com/nveeser/vyconfigure/pkg/config"
+	"github.com/nveeser/vyconfigure/commands"
 	"github.com/urfave/cli/v2"
 )
 
 func plan(c *cli.Context) error {
-	repo := &config.Repo{
-		ConfigDirectory: c.String("config-dir"),
-	}
-	// get remote config as cmds
-	client, err := createClient(c)
+	repo, client, err := newRepoAndClient(c)
 	if err != nil {
 		return err
 	}
-	rc, err := client.ReadConfig(c.Context)
+	remote, err := client.ReadConfig(c.Context)
 	if err != nil {
 		return err
 	}
-	lc, err := repo.ReadConfig()
+	local, err := repo.ReadConfig()
 	if err != nil {
 		return err
 	}
-	changes, err := commands.DiffConfigs(rc, lc)
+	changes, err := commands.DiffConfigs(remote, local)
 	if err != nil {
 		return err
 	}
@@ -33,13 +29,13 @@ func plan(c *cli.Context) error {
 		diffs = true
 		switch change {
 		case commands.Added:
-			color.Green("set " + entry.Path + " " + entry.Value)
+			color.Green("  set " + entry.String())
 		case commands.Deleted:
-			color.Green("delete " + entry.Path + " " + entry.Value)
+			color.Red("  delete " + entry.String())
 		}
 	}
 	if !diffs {
-		println("No changes to apply.")
+		fmt.Printf("No changes to apply.\n")
 		return nil
 	}
 	return nil

@@ -3,17 +3,16 @@ package cmd
 import (
 	"cmp"
 	"github.com/fatih/color"
-	"github.com/nveeser/vyconfigure/pkg/commands"
-	"github.com/nveeser/vyconfigure/pkg/config"
+	"github.com/nveeser/vyconfigure/commands"
 	"github.com/urfave/cli/v2"
 	"slices"
 )
 
 func show(c *cli.Context) error {
-	repo := &config.Repo{
-		ConfigDirectory: c.String("config-dir"),
+	repo, err := newRepo(c)
+	if err != nil {
+		return err
 	}
-
 	cfg, err := repo.ReadConfig()
 	if err != nil {
 		return err

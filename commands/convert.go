@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"unicode"
 )
 
 type Entry struct {
@@ -13,6 +14,9 @@ type Entry struct {
 }
 
 func (c Entry) String() string {
+	if strings.IndexFunc(c.Value, unicode.IsSpace) >= 0 {
+		return join(c.Path, fmt.Sprintf("%q", c.Value))
+	}
 	return join(c.Path, c.Value)
 }
 

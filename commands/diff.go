@@ -24,8 +24,8 @@ func DiffConfigs(from, to any) (iter.Seq2[ChangeType, Entry], error) {
 	}
 
 	return func(yield func(ChangeType, Entry) bool) {
-		toMap := index(tm.cmds)
-		fromMap := index(fm.cmds)
+		toMap := indexEntry(tm.cmds)
+		fromMap := indexEntry(fm.cmds)
 
 		for _, e := range fm.cmds {
 			if _, exists := toMap[e.String()]; !exists {
@@ -44,7 +44,7 @@ func DiffConfigs(from, to any) (iter.Seq2[ChangeType, Entry], error) {
 	}, nil
 }
 
-func index(f []Entry) map[string]Entry {
+func indexEntry(f []Entry) map[string]Entry {
 	m := make(map[string]Entry, len(f))
 	for _, item := range f {
 		m[item.String()] = item

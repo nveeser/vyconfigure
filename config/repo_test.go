@@ -6,11 +6,15 @@ import (
 	"testing"
 
 	diffcmp "github.com/google/go-cmp/cmp"
+	"github.com/nveeser/vyconfigure/section"
 )
 
 func TestRepo_WriteAndReadConfig(t *testing.T) {
 	tmpDir := t.TempDir()
-	r := &Repo{ConfigDirectory: tmpDir}
+	r := &Repo{
+		ConfigDirectory: tmpDir,
+		//		SectionMapper:   &section.Mapper{},
+	}
 
 	testData := map[string]any{
 		"system": map[string]any{
@@ -65,7 +69,10 @@ func TestRepo_WriteAndReadConfig(t *testing.T) {
 }
 
 func TestRepo_ReadConfig_Error(t *testing.T) {
-	r := &Repo{ConfigDirectory: "/nonexistent/dir/that/does/not/exist"}
+	r := &Repo{
+		ConfigDirectory: "/nonexistent/dir/that/does/not/exist",
+		SectionMapper:   &section.Mapper{},
+	}
 	_, err := r.ReadConfig()
 	if err == nil {
 		t.Error("expected error when reading from non-existent directory, got nil")
@@ -79,7 +86,10 @@ func TestRepo_ReadConfig_InvalidYAML(t *testing.T) {
 		t.Fatalf("failed to write invalid yaml: %v", err)
 	}
 
-	r := &Repo{ConfigDirectory: tmpDir}
+	r := &Repo{
+		ConfigDirectory: tmpDir,
+		SectionMapper:   &section.Mapper{},
+	}
 	_, err = r.ReadConfig()
 	if err == nil {
 		t.Error("expected error when reading invalid yaml file, got nil")
@@ -87,7 +97,10 @@ func TestRepo_ReadConfig_InvalidYAML(t *testing.T) {
 }
 
 func TestRepo_WriteConfig_Error(t *testing.T) {
-	r := &Repo{ConfigDirectory: "/nonexistent/dir/that/does/not/exist"}
+	r := &Repo{
+		ConfigDirectory: "/nonexistent/dir/that/does/not/exist",
+		SectionMapper:   &section.Mapper{},
+	}
 	err := r.WriteConfig(map[string]any{"test": "data"})
 	if err == nil {
 		t.Error("expected error when writing to non-existent directory, got nil")
