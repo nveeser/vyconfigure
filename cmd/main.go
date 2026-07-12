@@ -11,38 +11,38 @@ var appVersion = "development"
 
 func Run() {
 	app := cli.NewApp()
-	app.Name = "vyconfigure"
+	app.Name = "vysync"
 	app.Version = appVersion
 	app.Usage = "Declarative configuration for VyOS."
 	app.EnableBashCompletion = true
 	app.Authors = []*cli.Author{
-		{Name: "Charlie Haley", Email: "charlie-haley@users.noreply.github.com"},
+		{Name: "Nicholas Veeser", Email: "nicholas@users.noreply.github.com"},
 	}
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
 			Name:    "host",
 			Usage:   "The hostname of the VyOS HTTP API.",
-			EnvVars: []string{"VYCONFIGURE_HOST"},
+			EnvVars: []string{"VYSYNC_HOST"},
 		},
 		&cli.StringFlag{
 			Name:    "api-key",
 			Usage:   "API key for the HTTP API.",
-			EnvVars: []string{"VYCONFIGURE_API_KEY"},
+			EnvVars: []string{"VYSYNC_API_KEY"},
 		},
 		&cli.StringFlag{
 			Name: "config-dir", Value: ".",
 			Usage:   "Directory where config is stored.",
-			EnvVars: []string{"VYCONFIGURE_CONFIG_DIR"},
+			EnvVars: []string{"VYSYNC_CONFIG_DIR"},
 		},
 		&cli.BoolFlag{
 			Name:    "insecure",
 			Usage:   "Whether to skip verifying the SSL certificate.",
-			EnvVars: []string{"VYCONFIGURE_INSECURE"},
+			EnvVars: []string{"VYSYNC_INSECURE"},
 		},
 		&cli.BoolFlag{
 			Name:    "debug",
 			Usage:   "Enable Debug mode.",
-			EnvVars: []string{"VYCONFIGURE_DEBUG"},
+			EnvVars: []string{"VYSYNC_DEBUG"},
 		},
 	}
 	app.Commands = []*cli.Command{

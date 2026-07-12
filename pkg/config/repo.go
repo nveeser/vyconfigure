@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const defaultMappingFile = "vycfg-map.yaml"
+const defaultMappingFile = "vysync.yaml"
 
 type Repo struct {
 	ConfigDirectory string
@@ -30,7 +30,7 @@ type MappingEntry struct {
 	Path string `yaml:"path"`
 }
 
-// WriteConfig writes existing vyos config to the local filesystem
+// WriteConfig writes existing VyOS config to the local filesystem
 func (r *Repo) WriteConfig(data map[string]any) error {
 	mc, err := r.readMappingConfig()
 	if err != nil {
@@ -51,7 +51,6 @@ func (r *Repo) WriteConfig(data map[string]any) error {
 			log.Printf("No Value path: %s", e.yamlPath)
 			continue
 		}
-		log.Printf("F: %s %v", e.basename, e.contents)
 
 		p := path.Join(cfgDir, e.basename+".yaml")
 		fp, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)

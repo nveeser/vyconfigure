@@ -1,5 +1,5 @@
 FROM gcr.io/distroless/static-debian11
 
-COPY vyconfigure /
+COPY vysync /
 
-CMD ["/vyconfigure"]
+CMD ["/vysync"]
