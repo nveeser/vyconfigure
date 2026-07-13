@@ -1,13 +1,18 @@
 package cmd
 
 import (
-	"os"
+	"fmt"
 
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func version(_ *cli.Context) error {
-	println(appVersion)
-	os.Exit(0)
-	return nil
+func newVersionCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "version",
+		Aliases: []string{"v"},
+		Short:   "Prints the current version.",
+		Run: func(_ *cobra.Command, _ []string) {
+			fmt.Println(appVersion)
+		},
+	}
 }

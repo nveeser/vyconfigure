@@ -2,22 +2,33 @@ package cmd
 
 import (
 	"cmp"
+	"fmt"
+	"github.com/fatih/color"
 	"github.com/nveeser/go-vyos/vyos"
 	"github.com/nveeser/vyconfigure/commands"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	"slices"
 )
 
-func apply(c *cli.Context) error {
-	repo, client, err := newRepoAndClient(c)
+func newApplyCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "apply",
+		Aliases: []string{"a", "push"},
+		Short:   "Applies the current configuration.",
+		RunE:    apply,
+	}
+}
+
+func apply(cmd *cobra.Command, _ []string) error {
+	repo, client, err := newRepoAndClient(cmd.Context())
 	if err != nil {
 		return err
 	}
-	remote, err := client.ReadConfig(c.Context)
+	remote, err := client.ReadConfigTree(cmd.Context())
 	if err != nil {
 		return err
 	}
-	local, err := repo.ReadConfig()
+	local, err := repo.ReadConfigTree()
 	if err != nil {
 		return err
 	}
@@ -30,23 +41,21 @@ func apply(c *cli.Context) error {
 	for change, entry := range it {
 		switch change {
 		case commands.Added:
+			color.Green("  set " + entry.String())
 			reqs = append(reqs, &vyos.SetRequest{Path: entry.Path, Value: entry.Value})
 		case commands.Deleted:
+			color.Red("  delete " + entry.String())
 			reqs = append(reqs, &vyos.DeleteRequest{Path: entry.Path, Value: entry.Value})
 		}
 	}
+
 	if len(reqs) == 0 {
-		println("No changes to apply.")
+		color.Blue("No changes to apply.")
 		return nil
 	}
 	slices.SortFunc(reqs, compareConfigRequest)
-	err = client.ConfigMode().Configure(c.Context, reqs...)
-	//var httpErr *vyos.HTTPError
-	//if errors.As(err, &httpErr) {
-	//	httpErr.
-	//}
-	if err != nil {
-		return err
+	if err := client.ConfigMode().Configure(cmd.Context(), reqs...); err != nil {
+		return fmt.Errorf("error calling Configure: %w", err)
 	}
 	return nil
 }

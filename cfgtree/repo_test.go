@@ -1,4 +1,4 @@
-package config
+package cfgtree
 
 import (
 	"os"
@@ -30,9 +30,9 @@ func TestRepo_WriteAndReadConfig(t *testing.T) {
 		},
 	}
 
-	err := r.WriteConfig(testData)
+	err := r.WriteConfigTree(testData)
 	if err != nil {
-		t.Fatalf("WriteConfig() unexpected error: %v", err)
+		t.Fatalf("WriteConfigTree() unexpected error: %v", err)
 	}
 
 	systemFile := filepath.Join(tmpDir, "system.yaml")
@@ -50,21 +50,21 @@ func TestRepo_WriteAndReadConfig(t *testing.T) {
 		t.Fatalf("failed to write dummy text file: %v", err)
 	}
 
-	readData, err := r.ReadConfig()
+	readData, err := r.ReadConfigTree()
 	if err != nil {
-		t.Fatalf("ReadConfig() unexpected error: %v", err)
+		t.Fatalf("ReadConfigTree() unexpected error: %v", err)
 	}
 
 	if len(readData) != 2 {
-		t.Errorf("ReadConfig() returned %d keys, want 2", len(readData))
+		t.Errorf("ReadConfigTree() returned %d keys, want 2", len(readData))
 	}
 
 	if _, ok := readData["readme"]; ok {
-		t.Errorf("ReadConfig() should not have read readme.txt")
+		t.Errorf("ReadConfigTree() should not have read readme.txt")
 	}
 
 	if diff := diffcmp.Diff(testData, readData); diff != "" {
-		t.Errorf("ReadConfig() data mismatch (-want +got):\n%s", diff)
+		t.Errorf("ReadConfigTree() data mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -73,7 +73,7 @@ func TestRepo_ReadConfig_Error(t *testing.T) {
 		ConfigDirectory: "/nonexistent/dir/that/does/not/exist",
 		SectionMapper:   &section.Mapper{},
 	}
-	_, err := r.ReadConfig()
+	_, err := r.ReadConfigTree()
 	if err == nil {
 		t.Error("expected error when reading from non-existent directory, got nil")
 	}
@@ -90,7 +90,7 @@ func TestRepo_ReadConfig_InvalidYAML(t *testing.T) {
 		ConfigDirectory: tmpDir,
 		SectionMapper:   &section.Mapper{},
 	}
-	_, err = r.ReadConfig()
+	_, err = r.ReadConfigTree()
 	if err == nil {
 		t.Error("expected error when reading invalid yaml file, got nil")
 	}
@@ -101,7 +101,7 @@ func TestRepo_WriteConfig_Error(t *testing.T) {
 		ConfigDirectory: "/nonexistent/dir/that/does/not/exist",
 		SectionMapper:   &section.Mapper{},
 	}
-	err := r.WriteConfig(map[string]any{"test": "data"})
+	err := r.WriteConfigTree(map[string]any{"test": "data"})
 	if err == nil {
 		t.Error("expected error when writing to non-existent directory, got nil")
 	}

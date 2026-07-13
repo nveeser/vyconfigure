@@ -1,21 +1,26 @@
 package cmd
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func sync(c *cli.Context) error {
-	repo, client, err := newRepoAndClient(c)
+func newSyncCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "sync",
+		Aliases: []string{"s", "pull"},
+		Short:   "Syncs configuration to the current directory through the HTTP API.",
+		RunE:    sync,
+	}
+}
+
+func sync(cmd *cobra.Command, _ []string) error {
+	repo, client, err := newRepoAndClient(cmd.Context())
 	if err != nil {
 		return err
 	}
-	d, err := client.ReadConfig(c.Context)
+	d, err := client.ReadConfigTree(cmd.Context())
 	if err != nil {
 		return err
 	}
-	err = repo.WriteConfig(d)
-	if err != nil {
-		return err
-	}
-	return nil
+	return repo.WriteConfigTree(d)
 }

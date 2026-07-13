@@ -2,22 +2,31 @@ package cmd
 
 import (
 	"cmp"
+	"slices"
+
 	"github.com/fatih/color"
 	"github.com/nveeser/vyconfigure/commands"
-	"github.com/urfave/cli/v2"
-	"slices"
+	"github.com/spf13/cobra"
 )
 
-func show(c *cli.Context) error {
-	repo, err := newRepo(c)
-	if err != nil {
-		return err
+func newShowCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "show",
+		Aliases: []string{"sh"},
+		Short:   "Shows the local instance.",
+		RunE:    show,
 	}
-	cfg, err := repo.ReadConfig()
-	if err != nil {
-		return err
-	}
+}
 
+func show(_ *cobra.Command, _ []string) error {
+	repo, err := newRepo()
+	if err != nil {
+		return err
+	}
+	cfg, err := repo.ReadConfigTree()
+	if err != nil {
+		return err
+	}
 	cmds, err := commands.FromConfigMap(cfg, "")
 	if err != nil {
 		return err
@@ -28,6 +37,5 @@ func show(c *cli.Context) error {
 	for _, cmd := range cmds {
 		color.Green(" set " + cmd.String())
 	}
-
 	return nil
 }

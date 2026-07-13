@@ -13,7 +13,7 @@ You will need to enable the HTTP API on your VyOS instance, [refer to the upstre
 ## Workflow
 You should start by syncing your existing configuration to your local filesystem so you can begin using VyConfigure.
 ```bash
-# This will sync your existing VyOS config to your current working directory
+# This will sync your existing VyOS cfgtree to your current working directory
 vyconfigure --host="https://<VyOS IP or Hostname>" --api-key="<VyOS HTTP API key>" sync
 ```
 

@@ -1,7 +1,6 @@
 package section
 
 import (
-	"errors"
 	"fmt"
 	goyaml "gopkg.in/yaml.v3"
 	"iter"
@@ -10,11 +9,8 @@ import (
 	"slices"
 )
 
-func NewMapper(configpath string) (*Mapper, error) {
-	c, err := os.ReadFile(configpath)
-	if errors.Is(err, os.ErrNotExist) {
-		return &Mapper{}, nil
-	}
+func NewMapper(configPath string) (*Mapper, error) {
+	c, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}

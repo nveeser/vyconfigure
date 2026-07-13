@@ -37,7 +37,7 @@ func TestDiffConfigs(t *testing.T) {
 			wantDiff: nil,
 		},
 		{
-			name: "added config",
+			name: "added cfgtree",
 			from: map[string]any{},
 			to: map[string]any{
 				"firewall": map[string]any{
@@ -52,7 +52,7 @@ func TestDiffConfigs(t *testing.T) {
 			},
 		},
 		{
-			name: "deleted config",
+			name: "deleted cfgtree",
 			from: map[string]any{
 				"firewall": map[string]any{
 					"default-action": "drop",
@@ -67,7 +67,7 @@ func TestDiffConfigs(t *testing.T) {
 			},
 		},
 		{
-			name: "modified config",
+			name: "modified cfgtree",
 			from: map[string]any{
 				"firewall": map[string]any{
 					"default-action": "drop",
@@ -90,13 +90,13 @@ func TestDiffConfigs(t *testing.T) {
 			},
 		},
 		{
-			name:    "invalid from config",
+			name:    "invalid from cfgtree",
 			from:    123,
 			to:      map[string]any{},
 			wantErr: true,
 		},
 		{
-			name:    "invalid to config",
+			name:    "invalid to cfgtree",
 			from:    map[string]any{},
 			to:      123,
 			wantErr: true,

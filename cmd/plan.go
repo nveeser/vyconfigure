@@ -4,19 +4,29 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/nveeser/vyconfigure/commands"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func plan(c *cli.Context) error {
-	repo, client, err := newRepoAndClient(c)
+func newPlanCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "plan",
+		Aliases: []string{"d", "diff"},
+		Short:   "Shows the diff between the current directory and VyOS instance.",
+		RunE:    plan,
+	}
+}
+
+func plan(cmd *cobra.Command, _ []string) error {
+	repo, client, err := newRepoAndClient(cmd.Context())
 	if err != nil {
 		return err
 	}
-	remote, err := client.ReadConfig(c.Context)
+
+	remote, err := client.ReadConfigTree(cmd.Context())
 	if err != nil {
 		return err
 	}
-	local, err := repo.ReadConfig()
+	local, err := repo.ReadConfigTree()
 	if err != nil {
 		return err
 	}
@@ -36,7 +46,6 @@ func plan(c *cli.Context) error {
 	}
 	if !diffs {
 		fmt.Printf("No changes to apply.\n")
-		return nil
 	}
 	return nil
 }

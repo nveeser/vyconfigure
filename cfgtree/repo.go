@@ -1,4 +1,4 @@
-package config
+package cfgtree
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ type Repo struct {
 	Ignore          []string
 }
 
-// WriteSection writes existing VyOS config section to the local filesystem
+// WriteSection writes existing VyOS cfgtree section to the local filesystem
 func (r *Repo) WriteSection(e *section.Section) error {
 	cfgDir, err := r.configDir()
 	if err != nil {
@@ -48,8 +48,8 @@ func (r *Repo) WriteSection(e *section.Section) error {
 	return nil
 }
 
-// WriteConfig writes existing VyOS config to the local filesystem
-func (r *Repo) WriteConfig(data map[string]any) error {
+// WriteConfigTree writes existing VyOS cfgtree to the local filesystem
+func (r *Repo) WriteConfigTree(data map[string]any) error {
 	for _, e := range r.SectionMapper.Split(data) {
 		err := r.WriteSection(e)
 		if err != nil {
@@ -92,7 +92,7 @@ func (r *Repo) ReadSections() ([]*section.Section, error) {
 	}
 	return sections, nil
 }
-func (r *Repo) ReadConfig() (map[string]any, error) {
+func (r *Repo) ReadConfigTree() (map[string]any, error) {
 	sections, err := r.ReadSections()
 	if err != nil {
 		return nil, err

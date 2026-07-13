@@ -1,4 +1,4 @@
-package config
+package cfgtree
 
 import (
 	"context"
@@ -11,7 +11,7 @@ type Client struct {
 	SectionMapper *section.Mapper
 }
 
-func (c *Client) ReadConfig(ctx context.Context) (map[string]any, error) {
+func (c *Client) ReadConfigTree(ctx context.Context) (map[string]any, error) {
 	data, err := c.ConfigMode().Show(ctx, "")
 	if err != nil {
 		return nil, err
@@ -19,13 +19,13 @@ func (c *Client) ReadConfig(ctx context.Context) (map[string]any, error) {
 	if data == nil {
 		return nil, nil
 	}
-	// extract the system.login path from the full config and drop it.
+	// extract the system.login path from the full cfgtree and drop it.
 	data, _ = section.SplitMap(data, []string{"system", "login"}, false)
 	return data, nil
 }
 
 func (c *Client) ReadSections(ctx context.Context) ([]*section.Section, error) {
-	data, err := c.ReadConfig(ctx)
+	data, err := c.ReadConfigTree(ctx)
 	if err != nil {
 		return nil, err
 	}
