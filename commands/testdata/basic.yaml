@@ -1,0 +1,4 @@
+firewall:
+    ipv6-name:
+        WAN_IN:
+            default-action: drop

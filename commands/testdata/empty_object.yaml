@@ -1,0 +1,5 @@
+firewall:
+    ipv6-name:
+        WAN_IN:
+            rule:
+                "30": {}

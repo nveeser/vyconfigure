@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
 
 	"github.com/fatih/color"
@@ -29,7 +30,7 @@ func show(_ *cobra.Command, _ []string) error {
 	}
 	cmds, err := commands.FromConfigMap(cfg, "")
 	if err != nil {
-		return err
+		return fmt.Errorf("error converting config to commands: %w", err)
 	}
 	slices.SortFunc(cmds, func(a, b commands.Entry) int {
 		return cmp.Or(cmp.Compare(a.Path, b.Path), cmp.Compare(a.Value, b.Value))

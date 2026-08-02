@@ -1,0 +1,6 @@
+firewall:
+    ipv6-name:
+        WAN_IN:
+            rule:
+                "10":
+                    description: Hello this is a rule

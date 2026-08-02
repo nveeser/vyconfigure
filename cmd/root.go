@@ -25,9 +25,11 @@ const (
 // NewRoot creates an instance of the root command.
 func NewRoot() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:     "vysync",
-		Short:   "Declarative configuration for VyOS.",
-		Version: appVersion,
+		Use:           "vysync",
+		Short:         "Declarative configuration for VyOS.",
+		Version:       appVersion,
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 
 	pf := rootCmd.PersistentFlags()

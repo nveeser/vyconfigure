@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"reflect"
 	"slices"
 	"strings"
 	"unicode"
@@ -80,7 +79,7 @@ func (m *mapper) processValue(cmd string, v any) error {
 	case string:
 		m.cmds = append(m.cmds, Entry{Path: cmd, Value: v})
 	default:
-		panic("invalid configuration type: " + reflect.TypeOf(v).String())
+		return fmt.Errorf("invalid configuration \"%s [%v]\": %T", cmd, v, v)
 	}
 	return nil
 }

@@ -1,0 +1,22 @@
+firewall:
+    ipv6-name:
+        WAN_IN:
+            default-action: drop
+            rule:
+                "10":
+                    action: accept
+                    description: Hello this is a rule
+                    state:
+                        established: enable
+                        related: enable
+                "20":
+                    action: accept
+                    protocol: ipv6-icmp
+                "30": {}
+service:
+    mdns:
+        repeater:
+            interface:
+                - eth1.10
+                - eth2.20
+                - eth1.50
